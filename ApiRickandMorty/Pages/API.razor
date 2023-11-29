@@ -1,0 +1,65 @@
+﻿@page "/api"
+@using Newtonsoft.Json
+@inject HttpClient Http
+@using ApiRickandMorty.Model;
+
+
+<h2 style="text-align:center; font-weight:700"> Rick y Morty Personajes</h2>
+
+
+
+
+<div class="row">
+    @foreach (Personajes personajes in GetAll())
+    {
+        <div class="col mt-3">
+            <div class="card">
+                <img src="@personajes.image">
+
+                <div class="card-body">
+                    <p class="card-text">@personajes.name</p>
+                    <p class="card-text">@personajes.status</p>
+                    <p class="card-text">@personajes.species</p>
+                </div>
+            </div>
+        </div>
+
+    }
+</div>
+
+
+
+@code {
+   
+   
+   
+      public List<object> GetAll()
+    {
+         Personajes personajes = new Personajes();
+      
+
+        using (var cliente = new HttpClient())
+        {
+            personajes.results = new List<object>();
+            cliente.BaseAddress = new Uri("https://rickandmortyapi.com/api/character/");
+            var task = cliente.GetAsync("");
+            task.Wait();
+
+            var resultTask = task.Result;
+            if (resultTask.IsSuccessStatusCode)
+            {
+                var readTask = resultTask.Content.ReadFromJsonAsync<Personajes>();
+                readTask.Wait();
+                foreach (var resultItem in readTask.Result.results)
+                {
+                    Personajes resultItemList = Newtonsoft.Json.JsonConvert.DeserializeObject<Personajes>(resultItem.ToString());
+                    personajes.results.Add(resultItemList);
+                }
+
+            }
+
+
+            return personajes.results;
+        }
+    }
+}
